@@ -9,18 +9,22 @@
             margin: auto;
             font-family: Arial, sans-serif;
         }
+
         h1 {
             color: #333;
         }
+
         form {
             margin-top: 20px;
         }
+
         .book-option {
             margin: 10px 0;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+
         .book-option:hover {
             background-color: #f5f5f5;
         }
@@ -31,29 +35,32 @@
     <h1>Welcome to our Book Reservation App</h1>
 </header>
 <main>
-    <form action="/" method="post">
-        <h2>Filter book:</h2>
+    <!--    <form action="/" method="post">-->
+    <!--        <h2>Filter book:</h2>-->
+    <h2>Recently viewed:</h2>
+    <ul>
+        <li th:each="lastViewedBook : ${lastViewedBooks}" th:text="${lastViewedBook}"></li>
+    </ul>
+    <form action="/" method="POST">
+        <h2>Filter books:</h2>
 
-        <label>Book Name:</label>
-        <input type="text" name="bookName">
+        <label>Name:</label>
+        <input type="text" name="filterName" required/>
         <br/>
 
-        <label>Minimum Average Rating:</label>
-        <input type="number" name="minAverageRating" step=".01" min="0" value="0">
+        <label>Minimum rating:</label>
+        <input type="number" name="filterRating" step=".01" min="0" value="0" required/>
         <br/>
 
-        <br/>
-        <input type="submit" value="Filter books">
+        <button type="submit">Filter</button>
     </form>
     <form action="/bookReservation" method="POST">
         <h2>Choose a book:</h2>
 
-        <ul>
-            <li th:each="book : ${books}">
-                <input type="radio" name="bookTitle" th:value="${book.title}" />
-                <label th:text="'Title: ' + ${book.title} + ', Genre: ' + ${book.genre} + ', Rating: ' + ${book.averageRating}"></label>
-            </li>
-        </ul>
+        <div th:each="book : ${books}">
+            <input type="radio" class="book-option" name="bookTitle" th:value="${book.getTitle()}"
+                   th:text="'Title: ' + ${book.getTitle()} + ', Genre: ' + ${book.getAverageRating()} + ', Rating: ' + ${book.getAverageRating()}"/>
+        </div>
 
         <h2>Enter your information:</h2>
         <label>Your Name:</label>

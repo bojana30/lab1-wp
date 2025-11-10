@@ -13,11 +13,15 @@ import org.thymeleaf.web.IWebExchange;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet(name = "BookReservationServlet", urlPatterns = "/bookReservation")
 public class BookReservationServlet extends HttpServlet {
     private final SpringTemplateEngine templateEngine;
     private final BookReservationService bookReservationService;
+
+    private static final int MAX_RECENTLY_VIEWED = 3;
 
     public BookReservationServlet(SpringTemplateEngine templateEngine, BookReservationService bookReservationService) {
         this.templateEngine = templateEngine;
@@ -32,7 +36,8 @@ public class BookReservationServlet extends HttpServlet {
 
         String bookTitle = request.getParameter("bookTitle");
         String readerName = request.getParameter("readerName");
-        int numberOfCopies = Integer.parseInt(request.getParameter("numberOfCopies"));
+//        int numberOfCopies = Integer.parseInt(request.getParameter("numberOfCopies"));
+        String numberOfCopies = request.getParameter("numberOfCopies");
 
         WebContext context = new WebContext(webExchange);
         context.setVariable("readerName", readerName);
@@ -43,6 +48,8 @@ public class BookReservationServlet extends HttpServlet {
         templateEngine.process("reservationConfirmation.html", context, response.getWriter());
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String bookTitle = request.getParameter("bookTitle");
         String readerName = request.getParameter("readerName");
@@ -50,7 +57,20 @@ public class BookReservationServlet extends HttpServlet {
         int numberOfCopies = Integer.parseInt(request.getParameter("numCopies"));
 
         BookReservation bookReservation = bookReservationService.placeReservation(bookTitle, readerName, readerAddress, numberOfCopies);
-        String params = String.format("bookTitle=%s&readerName=%s&readerAddress=%s&numberOfCopies=%d", bookReservation.getBookTitle(), bookReservation.getReaderName(), bookReservation.getReaderAddress(), bookReservation.getNumberOfCopies());
+//        String params = String.format("bookTitle=%s&readerName=%s&readerAddress=%s&numberOfCopies=%d", bookReservation.getBookTitle(), bookReservation.getReaderName(), bookReservation.getReaderAddress(), bookReservation.getNumberOfCopies());
+        String params = String.format("bookTitle=%s&readerName=%s&readerAddress=%s&numberOfCopies=%s",
+                bookReservation.getBookTitle(), bookReservation.getReaderName(), bookReservation.getReaderAddress(), bookReservation.getNumberOfCopies());
+
+        List<String> lastViewed = new ArrayList<>();
+        Object lastViewedSessionObject = request.getSession().getAttribute("lastViewed");
+        if(lastViewedSessionObject != null) {
+            lastViewed = (List<String>) lastViewedSessionObject;
+            if(lastViewed.size() >= MAX_RECENTLY_VIEWED) {
+                lastViewed.removeLast();
+            }
+        }
+        lastViewed.addFirst(bookReservation.getBookTitle());
+        request.getSession().setAttribute("lastViewed", lastViewed);
         response.sendRedirect("/bookReservation?" + params);
     }
 }

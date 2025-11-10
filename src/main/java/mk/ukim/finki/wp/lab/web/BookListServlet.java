@@ -32,32 +32,40 @@ public class BookListServlet extends HttpServlet {
                 .buildExchange(request, response);
 
         List<Book> books = null;
-        String bookName = request.getParameter("bookName");
-        double minAverageRating = -1;
+
+        List<String> lastViewed = (List<String>) request.getSession().getAttribute("lastViewed");
+
+        String filterName = request.getParameter("filterName");
+        double filterRating = -1;
 
         try {
-            minAverageRating = Double.parseDouble(request.getParameter("minAverageRating"));
+            filterRating = Double.parseDouble(request.getParameter("filterRating"));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
-        System.out.println(bookName + ", " + minAverageRating);
 
-        if(bookName != null && !bookName.isEmpty() && minAverageRating != -1) {
-            books = bookService.searchBooks(bookName, minAverageRating);
+        if (filterName != null && !filterName.isEmpty() && filterRating != -1) {
+            books = bookService.searchBooks(filterName, filterRating);
         } else {
             books = bookService.listAll();
         }
 
         WebContext context = new WebContext(webExchange);
         context.setVariable("books", books);
+//        templateEngine.process("listBooks.html", context, response.getWriter());
+        context.setVariable("lastViewedBooks", lastViewed);
         templateEngine.process("listBooks.html", context, response.getWriter());
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String bookName = request.getParameter("bookName");
-        String minAverageRating = request.getParameter("minAverageRating");
-        response.sendRedirect("/?bookName=" + bookName + "&minAverageRating=" + minAverageRating);
+//        String bookName = request.getParameter("bookName");
+//        String minAverageRating = request.getParameter("minAverageRating");
+//        response.sendRedirect("/?bookName=" + bookName + "&minAverageRating=" + minAverageRating);
+        String filterName = request.getParameter("filterName");
+        String filterRating = request.getParameter("filterRating");
+        String params = String.format("filterName=%s&filterRating=%s", filterName, filterRating);
+        response.sendRedirect("/?" + params);
     }
 }
